@@ -55,21 +55,41 @@ sigma = 3
 tau = 10.7
 detections = 0
 pmr_list = []
-cfreq = 1e9
-fres=(rsf/samplen)
-bw = (sf/samp)*(1+beta)
-for i in range(1,20):
+cnum=100
+tabor1.send_scpi_cmd(':OUTP ON')
+for i in range(1,cnum):
     sig=capture(tabor1,1)
     sig=(sig*1/4096)*0.5-0.25
     sig=sig-np.mean(sig)
     [pwrVec,fvec] = process_sj(sig,rsf,4800,0.5)
+    cfreq = 1e9
+    samplen = len(pwrVec)
+    fres=(rsf/samplen)
+    bw = (sf/samp)*(1+beta)
     windInt = [int(((len(pwrVec)/2)+(cfreq/fres)) - (bw/fres)/2)-80,int(((len(pwrVec)/2)+(cfreq/fres)) + (bw/fres)/2)+80]
-    peak_val = float(max(pwrVec[windInt[0]:windInt[1]]))
-    mean_val = float(pwrVec)
-    pmr_db = 10.0 * np.log10(peak_val / mean_val)
-    pmr_list = np.append(pmr_list,pmr_db)
-    if pmr_db > tau:
+    peak_val = float(np.max(pwrVec))
+    # mean_val = float(np.mean(pwrVec))
+    pmr_list = np.append(pmr_list,peak_val)
+    if peak_val > tau:
         detections += 1
+np.save("on100.npy",pmr_list)
+tabor1.send_scpi_cmd(':OUTP OFF')
+for i in range(1,cnum):
+    sig=capture(tabor1,1)
+    sig=(sig*1/4096)*0.5-0.25
+    sig=sig-np.mean(sig)
+    [pwrVec,fvec] = process_sj(sig,rsf,4800,0.5)
+    cfreq = 1e9
+    samplen = len(pwrVec)
+    fres=(rsf/samplen)
+    bw = (sf/samp)*(1+beta)
+    windInt = [int(((len(pwrVec)/2)+(cfreq/fres)) - (bw/fres)/2)-80,int(((len(pwrVec)/2)+(cfreq/fres)) + (bw/fres)/2)+80]
+    peak_val = float(np.max(pwrVec))
+    # mean_val = float(np.mean(pwrVec))
+    pmr_list = np.append(pmr_list,peak_val)
+    if peak_val > tau:
+        detections += 1
+np.save("null100.npy",pmr_list)
 print(detections)
 plt.show()
 tabor1.close_instrument()
