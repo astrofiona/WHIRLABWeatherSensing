@@ -16,6 +16,7 @@ warnings.filterwarnings("ignore")
 from tevisainst import TEVisaInst
 
 import numpy as np
+from scipy import special
 
 import matplotlib.pyplot as plt
 from matplotlib.widgets import Button
@@ -39,6 +40,11 @@ samp = 16;
 beta=.5
 ######################################
 
+N = 839  # Length of Zadoff-Chu sequence
+u = 25  # Root of ZC sequence
+t = np.arange(N)
+signal_length=1000000
+zadoff_chu = np.exp(-1j * np.pi * u * t * (t + 1) / N)
 #########Reciever Params##############
 rsf=4.5e9# receiver sampling frequency
 framelen = 480000
